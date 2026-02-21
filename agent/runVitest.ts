@@ -11,7 +11,7 @@ export function runVitest(): Promise<{
 }> {
     return new Promise((resolve) => {
         // Run 'npx vitest run' to execute tests once without watch mode
-        exec("npx vitest run", (error, stdout, stderr) => {
+        exec("npx vitest run --coverage", (error, stdout, stderr) => {
             if (error) {
                 // If the command fails (e.g., tests fail), return the error output
                 resolve({
