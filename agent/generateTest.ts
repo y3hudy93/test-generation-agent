@@ -133,6 +133,14 @@ export async function generateTestForFile(
     return cleaned
 }
 
+/**
+ * Sends a failing test and its error output back to the model to request a fix.
+ * 
+ * @param filePath - Absolute path to the source file.
+ * @param currentTestCode - The current (failing) test code.
+ * @param vitestOutput - The error output from Vitest.
+ * @returns The corrected test code.
+ */
 export async function fixFailingTest(
     filePath: string,
     currentTestCode: string,
@@ -157,6 +165,7 @@ export async function fixFailingTest(
         Do NOT wrap in markdown.
     `;
 
+    // Request a fix from OpenAI
     const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -179,6 +188,7 @@ export async function fixFailingTest(
         throw new Error("No fix generated")
     }
 
+    // Clean up markdown formatting if present
     return content
         .replace(/```typescript/g, "")
         .replace(/```/g, "")

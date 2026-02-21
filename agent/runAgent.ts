@@ -5,6 +5,10 @@ import { generateTestForFile } from "./generateTest";
 import { runVitest } from "./runVitest";
 import { fixFailingTest } from "./generateTest";
 
+/**
+ * Main agent loop to generate and validate tests for untested files.
+ * It scans for files, generates tests, runs them, and attempts auto-fixes on failure.
+ */
 async function run() {
     try {
         console.log("Scanning for untested files...\n")
@@ -26,21 +30,26 @@ async function run() {
 
         console.log("\nGenerating tests...\n")
 
+        // Process each untested file sequentially
         for (const filePath of untestedFiles) {
             console.log("Generating test for:", filePath)
 
             const testFilePath = filePath.replace(".ts", ".test.ts")
 
+            // Initial test generation
             let testCode = await generateTestForFile(filePath)
 
+            // Save the generated test code
             fs.writeFileSync(testFilePath, testCode)
 
             let attempts = 0
             const maxAttempts = 3
 
+            // Retry loop for fixing failing tests
             while (attempts < maxAttempts) {
                 console.log(`Running Vitest (attempt ${attempts + 1})...`)
 
+                // Run the newly created test
                 const result = await runVitest()
 
                 if (result.success) {
@@ -50,12 +59,14 @@ async function run() {
 
                 console.log("Test failed. Fixing...\n")
 
+                // Request an auto-fix based on the error output
                 testCode = await fixFailingTest(
                     filePath,
                     testCode,
                     result.output
                 )
 
+                // Update the test file with the fixed code
                 fs.writeFileSync(testFilePath, testCode)
 
                 attempts++
@@ -74,4 +85,5 @@ async function run() {
     }
 }
 
+// Start the agent
 run()
