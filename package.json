@@ -10,7 +10,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "agent:test": "tsx agent/testRunner.ts"
+    "agent:run": "tsx agent/runAgent.ts"
   },
   "dependencies": {
     "dotenv": "^17.3.1",

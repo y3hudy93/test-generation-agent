@@ -132,3 +132,65 @@ export async function generateTestForFile(
 
     return cleaned
 }
+
+/**
+ * Sends a failing test and its error output back to the model to request a fix.
+ * 
+ * @param filePath - Absolute path to the source file.
+ * @param currentTestCode - The current (failing) test code.
+ * @param vitestOutput - The error output from Vitest.
+ * @returns The corrected test code.
+ */
+export async function fixFailingTest(
+    filePath: string,
+    currentTestCode: string,
+    vitestOutput: string
+): Promise<string> {
+    const mainContent = fs.readFileSync(filePath, "utf-8")
+
+    const prompt = `
+        You generated the following Vitest test, but it is failing.
+
+        SOURCE FILE:
+        ${mainContent}
+
+        CURRENT TEST:
+        ${currentTestCode}
+
+        VITEST ERROR OUTPUT:
+        ${vitestOutput}
+
+        Fix the test so that it passes.
+        Return ONLY raw TypeScript code.
+        Do NOT wrap in markdown.
+    `;
+
+    // Request a fix from OpenAI
+    const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+            {
+                role: "system",
+                content:
+                    "You are an expert TypeScript engineer fixing failing tests.",
+            },
+            {
+                role: "user",
+                content: prompt,
+            },
+        ],
+        temperature: 0.2,
+    })
+
+    const content = response.choices[0].message.content
+
+    if (!content) {
+        throw new Error("No fix generated")
+    }
+
+    // Clean up markdown formatting if present
+    return content
+        .replace(/```typescript/g, "")
+        .replace(/```/g, "")
+        .trim()
+}

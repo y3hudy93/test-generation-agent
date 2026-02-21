@@ -8,15 +8,15 @@ describe('calculateTax', () => {
         expect(calculateTax(0, 0.1)).toBe(0);
     });
 
-    it('should throw an error if amount is negative', () => {
+    it('should throw an error if the amount is negative', () => {
         expect(() => calculateTax(-100, 0.15)).toThrowError("Amount cannot be negative");
     });
 
-    it('should throw an error if rate is less than 0', () => {
+    it('should throw an error if the rate is less than 0', () => {
         expect(() => calculateTax(100, -0.1)).toThrowError("Rate must be between 0 and 1");
     });
 
-    it('should throw an error if rate is greater than 1', () => {
+    it('should throw an error if the rate is greater than 1', () => {
         expect(() => calculateTax(100, 1.1)).toThrowError("Rate must be between 0 and 1");
     });
 
