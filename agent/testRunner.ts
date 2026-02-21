@@ -1,9 +1,10 @@
 import path from "path"
+import fs from "fs"
 import { generateTestForFile } from "./generateTest"
 
 /**
  * Entry point for the test generation utility.
- * It demonstrates generating a test for a specific library file (calculateTax.ts).
+ * It generates a test for 'lib/calculateTax.ts' and saves it as a sibling '.test.ts' file.
  */
 async function main() {
     try {
@@ -17,12 +18,19 @@ async function main() {
         // Trigger the automated test generation
         const testCode = await generateTestForFile(filePath)
 
-        // Output the generated result to the console
-        console.log("\n===== GENERATED TEST =====\n")
-        console.log(testCode)
+        // Determine the path for the new test file (e.g., source.ts -> source.test.ts)
+        const testFilePath = filePath.replace(
+            ".ts",
+            ".test.ts"
+        )
+
+        // Write the generated test code to the calculated file path
+        fs.writeFileSync(testFilePath, testCode)
+
+        console.log("Test file created at:", testFilePath)
     } catch (error) {
-        // Log any errors encountered during the generation process
-        console.error("Error generating test:", error)
+        // Log any errors encountered during the generation or file writing process
+        console.error("Error:", error)
     }
 }
 
