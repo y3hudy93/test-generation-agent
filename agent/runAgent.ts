@@ -1,7 +1,9 @@
-import path from "path"
-import fs from "fs"
-import { findUntestedFiles } from "./scanFiles"
-import { generateTestForFile } from "./generateTest"
+import path from "path";
+import fs from "fs";
+import { findUntestedFiles } from "./scanFiles";
+import { generateTestForFile } from "./generateTest";
+import { runVitest } from "./runVitest";
+import { fixFailingTest } from "./generateTest";
 
 async function run() {
     try {
@@ -25,25 +27,45 @@ async function run() {
         console.log("\nGenerating tests...\n")
 
         for (const filePath of untestedFiles) {
-            console.log(
-                "Generating test for:",
-                path.basename(filePath)
-            )
+            console.log("Generating test for:", filePath)
 
-            const testCode = await generateTestForFile(filePath)
+            const testFilePath = filePath.replace(".ts", ".test.ts")
 
-            const testFilePath = filePath.replace(
-                ".ts",
-                ".test.ts"
-            )
+            let testCode = await generateTestForFile(filePath)
 
             fs.writeFileSync(testFilePath, testCode)
 
-            console.log(
-                "Test created:",
-                path.basename(testFilePath),
-                "\n"
-            )
+            let attempts = 0
+            const maxAttempts = 3
+
+            while (attempts < maxAttempts) {
+                console.log(`Running Vitest (attempt ${attempts + 1})...`)
+
+                const result = await runVitest()
+
+                if (result.success) {
+                    console.log("Test passed\n")
+                    break
+                }
+
+                console.log("Test failed. Fixing...\n")
+
+                testCode = await fixFailingTest(
+                    filePath,
+                    testCode,
+                    result.output
+                )
+
+                fs.writeFileSync(testFilePath, testCode)
+
+                attempts++
+            }
+
+            if (attempts === maxAttempts) {
+                console.log(
+                    "Max attempts reached. Test still failing.\n"
+                )
+            }
         }
 
         console.log("Test generation completed.")
