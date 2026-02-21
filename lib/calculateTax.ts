@@ -1,10 +1,10 @@
 /**
- * Computes the tax for a given amount based on a decimal rate.
+ * Calculates the tax for a given amount and rate.
  * 
- * @param amount - The base amount to calculate tax on. Must be non-negative.
- * @param rate - The tax rate (e.g., 0.15 for 15%). Must be between 0 and 1.
- * @returns The calculated tax amount.
- * @throws Error if amount is negative or rate is outside the [0, 1] range.
+ * @param amount - The base amount to calculate tax on (must be non-negative).
+ * @param rate - The tax rate (must be between 0 and 1).
+ * @returns The calculated tax amount, with a 10% discount for amounts over 1000.
+ * @throws Error if amount or rate are invalid.
  */
 export function calculateTax(amount: number, rate: number): number {
     if (amount < 0) {
@@ -13,6 +13,15 @@ export function calculateTax(amount: number, rate: number): number {
 
     if (rate < 0 || rate > 1) {
         throw new Error("Rate must be between 0 and 1")
+    }
+
+    if (amount === 0 && rate === 0) {
+        return 0
+    }
+
+    if (amount > 1000) {
+        // Apply a 10% discount for large amounts
+        return amount * rate * 0.9
     }
 
     return amount * rate
